@@ -27,6 +27,13 @@ description: Use when a user wants a time-bounded rollup across Lark calendar ev
 
 然后生成一份按时间顺序排列的 meeting digest 文档，并把文档链接发给用户。
 
+## Execution constraints
+
+- 不要为此技能在本地创建脚本、临时程序或其他可执行中间文件。
+- 若确实需要落地中间产物，统一放在 `.local/meeting-report/` 下，不要写到其他目录。
+- 需要整理或转换数据时，直接使用现有命令、管道和一次性命令调用完成，而不是落本地脚本。
+- 若命令会自动下载 transcript 或 artifact，必须避免把这些下载产物和新写的本地脚本混在一起，且不要额外生成辅助脚本来处理它们。
+
 ## Input contract
 
 必填输入：
