@@ -1,6 +1,6 @@
 # lark-automation-skills
 
-基于 [larksuite/cli](https://github.com/larksuite/cli) 的自动化 Skill 扩展，通过 AI Agent 自动汇总飞书会议信息、生成结构化报告并推送到飞书文档。
+基于 [larksuite/cli](https://github.com/larksuite/cli) 的自动化 Skill 扩展，覆盖会议汇总、项目综述、产品口碑分析、项目背景调研等场景，通过 AI Agent 自动检索、整理并推送到飞书文档或对话。
 
 ## Skills
 
@@ -8,6 +8,8 @@
 |---|---|
 | [meeting-report](meeting-report/) | 按时间范围汇总所有会议，生成 Meeting Digest |
 | [project-synthesis](project-synthesis/) | 按项目/创始人维度汇总相关会议，生成项目 Memo |
+| [产品评价调研](产品评价调研/) | 全网检索产品用户评价，按六大维度生成飞书 docx 报告 |
+| [项目信息查询](项目信息查询/) | 全网检索项目介绍、融资、团队和联系方式，5 段格式直接返回 |
 
 ---
 
@@ -86,9 +88,85 @@ Meeting report
 
 ---
 
+## 产品评价调研 — 全网产品口碑分析
+
+输入产品名称或链接（Kickstarter / 官网 / Amazon 等），全网检索用户评价和评测者观点，按六大维度归类，生成飞书 docx 报告。
+
+### 功能
+
+- 自动补全产品全名、品牌、品类、价格区间和众筹情况
+- 重点深挖 Kickstarter / YouTube / Reddit / Amazon 四个高密度评价渠道
+- 按六大维度归类：产品好评、差评、未满足需求、付费点、不购买点、各平台整体风向
+- 每条观点标注**极高 / 高 / 中 / 低**四档强度，依据独立信息源数量和跨平台共识度判定
+- 平台风向按 Reddit / YouTube / Kickstarter / Amazon / 专业媒体 / 社交平台 拆分
+- 关键句飞书高亮（`<text bgcolor="light-blue">…</text>`）
+- 自动写入飞书 docx，写入失败兜底返回本地 markdown 路径
+
+### 输出结构
+
+```
+用户评论分析｜<产品名>
+├── 产品基本信息（200-400 字自然叙述简介）
+└── 用户评论分析
+    ├── 产品好评（极高/高/中/低 四档）
+    ├── 产品差评
+    ├── 未满足用户需求的地方或功能
+    ├── 用户的付费点
+    ├── 用户不购买点
+    └── 全网各平台用户对这款产品的整体评价风向
+```
+
+### 使用示例
+
+```
+调研一下 RingConn Gen2 的用户评价
+分析这款产品的口碑：https://www.kickstarter.com/projects/...
+看看用户怎么评价 Flowtica
+做个 XX 产品的竞品评价分析
+```
+
+---
+
+## 项目信息查询 — 团队、融资、联系方式
+
+输入产品名 / 项目名 / 公司名 / 文章 / 链接，全网检索公司定位、创始人和核心成员、融资历史、多渠道联系方式，**直接在对话中返回 5 段编号格式**（不写文件、不写飞书）。
+
+### 功能
+
+- 中英文项目通吃：中文走 36kr / 虎嗅 / 创业邦 / 量子位 / IT桔子，英文走 TechCrunch / Crunchbase / LinkedIn
+- 团队信息深挖：教育背景 + 完整职业轨迹 + 创业经历 + 技术成就（每位 80-150 字）
+- 融资历史串联：种子→A→B 全部按时间顺序展开，分清领投/跟投，金额单位标清
+- 公司层面四项必查：官网 / LinkedIn / Twitter / 邮箱
+- 个人层面联系方式：LinkedIn / Twitter / 邮箱 / GitHub / 微信公众号 / 脉脉 / ProductHunt / 个人站点
+- 严格防编造：邮箱不从域名+姓名拼凑，低置信度内容不输出，未找到的整行省略
+- 搜索预算控制：单项目 ≤12 次 web_search，并行执行避免串行等待
+
+### 输出结构（5 段编号格式，对话直出）
+
+```
+1. 项目名称：{中文名}（{英文名}）｜ 官网：{URL}
+2. 项目介绍：{2-3 句自然语言}
+3. 融资情况：{按时间顺序串联所有轮次}
+4. 团队介绍：{每位成员 80-150 字背景}
+5. 联系方式：{个人在前，公司在末，未找到的整行省略}
+```
+
+### 使用示例
+
+```
+查一下言创万物这家公司的团队和融资
+找一下这个项目的创始人联系方式：https://verdent.ai
+谁做的 Flowtica，怎么联系到他们
+帮我看看 RingConn 团队背景和投资方
+```
+
+---
+
 ## 安装
 
-> **关键：** 安装时需将 `meeting-report/` 和 `project-synthesis/` 放到与 [larksuite/cli](https://github.com/larksuite/cli) 的 skills 同级目录下，以确保 SKILL.md 中的相对路径引用（如 `../lark-shared/`、`../lark-calendar/`）能正确解析。
+> **关键：** `meeting-report/`、`project-synthesis/`、`产品评价调研/` 这三个 Skill 在 SKILL.md 中引用了相对路径（如 `../lark-shared/`、`../lark-doc/`），安装时必须放到与 [larksuite/cli](https://github.com/larksuite/cli) 的 skills 同级目录下，否则相对路径无法解析。
+>
+> `项目信息查询/` 没有依赖飞书 Skill，单独安装在任意 skills 目录都能用。
 
 ### Agent 自动安装
 
@@ -109,26 +187,30 @@ git clone https://github.com/Linear-VC/lark-automation-skills.git
 # 例如 Claude Code：
 cp -r lark-automation-skills/meeting-report ~/.claude/skills/
 cp -r lark-automation-skills/project-synthesis ~/.claude/skills/
+cp -r lark-automation-skills/产品评价调研 ~/.claude/skills/
+cp -r lark-automation-skills/项目信息查询 ~/.claude/skills/
 
 # 其他 Agent 参考对应的自定义指令 / Skill 文档
 ```
 
 ## 前置依赖
 
-需要 [larksuite/cli](https://github.com/larksuite/cli) 中的以下基础 Skill 已安装：
+`meeting-report` / `project-synthesis` / `产品评价调研` 需要 [larksuite/cli](https://github.com/larksuite/cli) 中的以下基础 Skill 已安装：
 
-| Skill | 用途 |
-|---|---|
-| lark-shared | 认证、权限管理、身份切换 |
-| lark-calendar | 读取日历日程 |
-| lark-vc | 查询会议记录、获取纪要和录制 |
-| lark-minutes | 搜索和读取妙记 |
-| lark-doc | 创建飞书文档、读取文档内容 |
-| lark-im | 发送消息链接 |
+| Skill | 用途 | 被哪些 Skill 使用 |
+|---|---|---|
+| lark-shared | 认证、权限管理、身份切换 | meeting-report / project-synthesis / 产品评价调研 |
+| lark-calendar | 读取日历日程 | meeting-report / project-synthesis |
+| lark-vc | 查询会议记录、获取纪要和录制 | meeting-report / project-synthesis |
+| lark-minutes | 搜索和读取妙记 | meeting-report / project-synthesis |
+| lark-doc | 创建飞书文档、读取文档内容 | meeting-report / project-synthesis / 产品评价调研 |
+| lark-im | 发送消息链接 | meeting-report / project-synthesis |
+
+`项目信息查询` 仅依赖 Agent 内置的 web_search / web_fetch，无飞书依赖。
 
 ## 所需飞书权限
 
-两个 Skill 首次运行时会自动检测并申请缺失权限。
+涉及飞书 API 的 Skill 首次运行时会自动检测并申请缺失权限。
 
 **读取：**
 `calendar:calendar:read`, `calendar:calendar.event:read`, `vc:meeting.search:read`, `vc:meeting.meetingevent:read`, `vc:note:read`, `vc:record:readonly`, `minutes:minutes.search:read`, `minutes:minutes:readonly`, `minutes:minutes.artifacts:read`, `minutes:minutes.transcript:export`, `docx:document:readonly`, `drive:drive.metadata:readonly`
@@ -143,7 +225,11 @@ lark-automation-skills/
 ├── README.md
 ├── meeting-report/
 │   └── SKILL.md
-└── project-synthesis/
+├── project-synthesis/
+│   └── SKILL.md
+├── 产品评价调研/
+│   └── SKILL.md
+└── 项目信息查询/
     └── SKILL.md
 ```
 
